@@ -1,0 +1,17 @@
+{
+  "name": "pdfreader-bus-fair",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "eyes": "^0.1.8",
+    "pdf-extract": "^1.0.11",
+    "pdf2json": "^1.1.7"
+  }
+}
