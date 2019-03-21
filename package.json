@@ -11,6 +11,8 @@
   "description": "",
   "dependencies": {
     "eyes": "^0.1.8",
+    "inquirer": "^6.2.2",
+    "lodash.flatmap": "^4.5.0",
     "pdf-extract": "^1.0.11",
     "pdf2json": "^1.1.7"
   }
