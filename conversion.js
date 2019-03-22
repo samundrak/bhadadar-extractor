@@ -5,10 +5,10 @@ var inquirer = require('inquirer');
 const fs = require('fs');
 
 const places = Object.values(json);
-const values = [...new Set(flatmap(places.map((item) => Object.keys(item))))];
+const values = [...new Set(flatmap(places.map(item => Object.keys(item))))];
 
 const questions = [];
 values.forEach((place, index) => {
-  questions.push(`${place} - `);
+  questions.push(`${place},`);
 });
-fs.writeFileSync('placenames.txt', questions.join('\n'));
+fs.writeFileSync('placenames.csv', questions.join('\n'));
