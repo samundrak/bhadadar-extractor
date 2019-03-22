@@ -3,7 +3,7 @@ var inspect = require('eyes').inspector({ maxLength: 20000 });
 const path = require('path');
 var pdf_extract = require('pdf-extract');
 const utils = require('./utils');
-const csv = require('csvtojson');
+const shortid = require('shortid');
 
 var absolute_path_to_pdf = path.join(__dirname, 'Bhadadar.pdf');
 var options = {
@@ -17,16 +17,23 @@ var options = {
     .map(item => item.substring(0, item.length - 1).split(','))
     .reduce((obj, current) => {
       if (!current[1]) return obj;
-      obj[current[0]] = current[1];
+      obj[current[0]] = {
+        en: current[1],
+        np: current[0],
+        id: shortid(),
+      };
       return obj;
     }, {});
 
+  const placeDB = Object.values(placenames);
+  // return;
   var processor = pdf_extract(absolute_path_to_pdf, options, function(err) {
     if (err) {
       return callback(err);
     }
   });
   processor.on('complete', function(data) {
+    let totalDataStoragesCount = 0;
     const vadas = data.text_pages.map((textPage, index) => {
       // const textPage = data.text_pages[1];
       const ankas = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
@@ -48,15 +55,9 @@ var options = {
           if (vada.length < 3) return undefined;
           const crackDestiny = vada[1].split('–');
           return {
-            route: {
-              start: crackDestiny[0],
-              middle: crackDestiny.slice(1, crackDestiny.length - 1),
-              end: crackDestiny[crackDestiny.length - 1],
-            },
-            routeEn: {
-              start: placenames[crackDestiny[0]],
-              end: placenames[crackDestiny[crackDestiny.length - 1]],
-            },
+            start: (placenames[crackDestiny[0]] || {}).id,
+            middle: crackDestiny.slice(1, crackDestiny.length - 1),
+            end: (placenames[crackDestiny[crackDestiny.length - 1]] || {}).id,
             distanceInKm: {
               np: vada[2],
               en: utils.replaceAnkaWithNumber(vada[2]),
@@ -74,30 +75,38 @@ var options = {
         `data/vadadar_${index}.json`,
         JSON.stringify(createVada),
       );
+      totalDataStoragesCount++;
       return createVada;
     });
+    fs.writeFileSync(
+      `places.json`,
+      JSON.stringify({
+        data: placeDB,
+        totalItems: totalDataStoragesCount,
+      }),
+    );
 
-    let t = {};
-    vadas.forEach((n, index) => {
-      t[index] = Object.assign(
-        {},
-        n.reduce((o, i) => {
-          const routes = Object.values(i.route);
-          const obj = {};
-          routes.forEach(element => {
-            if (Array.isArray(element)) {
-              element.forEach(e => {
-                obj[e] = { en: '', np: e };
-              });
-            } else {
-              obj[element] = { en: '', np: element };
-            }
-          });
-          return Object.assign({}, obj, o);
-        }, {}),
-      );
-    });
-    fs.writeFileSync(`dats.json`, JSON.stringify(t));
+    // let t = {};
+    // vadas.forEach((n, index) => {
+    //   t[index] = Object.assign(
+    //     {},
+    //     n.reduce((o, i) => {
+    //       const routes = Object.values(i.route);
+    //       const obj = {};
+    //       routes.forEach(element => {
+    //         if (Array.isArray(element)) {
+    //           element.forEach(e => {
+    //             obj[e] = { en: '', np: e };
+    //           });
+    //         } else {
+    //           obj[element] = { en: '', np: element };
+    //         }
+    //       });
+    //       return Object.assign({}, obj, o);
+    //     }, {}),
+    //   );
+    // });
+    // fs.writeFileSync(`dats.json`, JSON.stringify(t));
     //   inspect(data.text_pages, 'extracted text pages');
     //   callback(null, text_pages);
   });
