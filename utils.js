@@ -3,14 +3,15 @@ const ankas = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '�
 function replaceNumberWithAnka(angrejiNumber) {
   return String(angrejiNumber)
     .split('')
-    .map(number => anka[number])
+    .map((number) => anka[number])
     .join('');
 }
 function replaceAnkaWithNumber(nums) {
   return nums
     .split('')
-    .map(anka => ankas.indexOf(anka))
-    .join('');
+    .map((anka) => ankas.indexOf(anka))
+    .join('')
+    .replace(/-/g, '.');
 }
 module.exports = {
   replaceAnkaWithNumber,

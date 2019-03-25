@@ -4,23 +4,29 @@ const path = require('path');
 var pdf_extract = require('pdf-extract');
 const utils = require('./utils');
 const shortid = require('shortid');
-
+const uniqby = require('lodash.uniqby');
 var absolute_path_to_pdf = path.join(__dirname, 'Bhadadar.pdf');
 var options = {
   type: 'text', // perform ocr to get the text within the scanned image
 };
 
+const placesIdsMap = new Map();
 (async function() {
   const placenames = fs
     .readFileSync('./placenames.csv', 'utf-8')
     .split('\n')
-    .map(item => item.substring(0, item.length - 1).split(','))
+    .map((item) => item.substring(0, item.length - 1).split(','))
     .reduce((obj, current) => {
       if (!current[1]) return obj;
+      let id = shortid();
+      if (placesIdsMap.has(current[1])) {
+        id = placesIdsMap.get(current[1]);
+      }
+      placesIdsMap.set(current[1], id);
       obj[current[0]] = {
         en: current[1],
         np: current[0],
-        id: shortid(),
+        id,
       };
       return obj;
     }, {});
@@ -41,13 +47,13 @@ var options = {
       const sanitizedVadadar = textPage
         .replace(/\n(\s)*ु /g, 'ु')
         .split('\n')
-        .filter(line => {
-          const haveAnka = ankas.some(anka => line.includes(anka));
+        .filter((line) => {
+          const haveAnka = ankas.some((anka) => line.includes(anka));
           return haveAnka;
         })
-        .map(item => item.replace(/\n/, ' '));
+        .map((item) => item.replace(/\n/, ' '));
       const createVada = sanitizedVadadar
-        .map(item => {
+        .map((item) => {
           const vada = item
             .trim()
             .replace(/\s(\s|\s\s)(\s)*/g, 'X')
@@ -70,10 +76,10 @@ var options = {
             oldFair: vada[4],
           };
         })
-        .filter(item => item);
+        .filter((item) => item);
       fs.writeFileSync(
         `data/vadadar_${index}.json`,
-        JSON.stringify(createVada),
+        JSON.stringify(createVada)
       );
       totalDataStoragesCount++;
       return createVada;
@@ -81,9 +87,9 @@ var options = {
     fs.writeFileSync(
       `places.json`,
       JSON.stringify({
-        data: placeDB,
+        data: uniqby(placeDB, 'en'),
         totalItems: totalDataStoragesCount,
-      }),
+      })
     );
 
     // let t = {};
